@@ -15,6 +15,7 @@ import { MahasiswaPage } from './mahasiswa.page';
     IonicModule,
     MahasiswaPageRoutingModule
   ],
+  exports: [MahasiswaPage],
   declarations: [MahasiswaPage]
 })
 export class MahasiswaPageModule { }

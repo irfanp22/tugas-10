@@ -1,6 +1,6 @@
 import { Component, OnInit, } from '@angular/core';
 import { ApiService } from '../api.service';
-import { ModalController } from '@ionic/angular';
+import { ModalController, AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-mahasiswa',
@@ -15,7 +15,7 @@ export class MahasiswaPage implements OnInit {
   nama: any;
   jurusan: any;
 
-  constructor(public _apiService: ApiService, private modal: ModalController) { }
+  constructor(public _apiService: ApiService, private modal: ModalController, private alertController: AlertController) { }
 
 
   ngOnInit() {
@@ -46,8 +46,10 @@ export class MahasiswaPage implements OnInit {
   cancel() {
     this.modal.dismiss();
     this.modal_tambah = false;
+    this.modal_edit = false;
     this.reset_model();
   }
+
   tambahMahasiswa() {
     if (this.nama != '' && this.jurusan != '') {
       let data = {
@@ -61,7 +63,7 @@ export class MahasiswaPage implements OnInit {
             console.log('berhasil tambah mahasiswa');
             this.getMahasiswa();
             this.modal_tambah = false;
-            this.modal.dismiss();
+            this.reset_model();
           },
           error: (err: any) => {
             console.log('gagal tambah mahasiswa');
@@ -71,19 +73,41 @@ export class MahasiswaPage implements OnInit {
       console.log('gagal tambah mahasiswa karena masih ada data yg kosong');
     }
   }
-  hapusMahasiswa(id: any) {
-    this._apiService.hapus(id,
-      '/hapus.php?id=').subscribe({
-        next: (res: any) => {
-          console.log('sukses', res);
-          this.getMahasiswa();
-          console.log('berhasil hapus data');
+  async hapusMahasiswa(id: any) {
+    const alert = await this.alertController.create({
+      header: 'Confirm Deletion',
+      message: 'Are you sure you want to delete this student?',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          handler: () => {
+            console.log('Deletion canceled');
+          }
         },
-        error: (error: any) => {
-          console.log('gagal');
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: () => {
+            this._apiService.hapus(id, '/hapus.php?id=').subscribe({
+              next: (res: any) => {
+                console.log('sukses', res);
+                this.getMahasiswa();
+                console.log('berhasil hapus data');
+              },
+              error: (error: any) => {
+                console.log('gagal');
+              }
+            });
+          }
         }
-      })
+      ]
+    });
+
+    await alert.present();
   }
+
+
   ambilMahasiswa(id: any) {
     this._apiService.lihat(id,
       '/lihat.php?id=').subscribe({
@@ -121,7 +145,7 @@ export class MahasiswaPage implements OnInit {
           this.getMahasiswa();
           console.log('berhasil edit Mahasiswa');
           this.modal_edit = false;
-          this.modal.dismiss();
+          this.reset_model();
         },
         error: (err: any) => {
           console.log('gagal edit Mahasiswa');
